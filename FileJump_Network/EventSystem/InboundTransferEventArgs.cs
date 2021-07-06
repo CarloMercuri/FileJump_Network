@@ -16,9 +16,9 @@ namespace FileJump.Network
 
         public byte[] FileBuffer { get; set; }
 
-        public FileStructure FileStructure { get; set; }
+        public LocalFileStructure FileStructure { get; set; }
 
-        public InboundTransferEventArgs(int _transferID, bool _successful, byte[] _fileBuffer, FileStructure _fileStructure)
+        public InboundTransferEventArgs(int _transferID, bool _successful, byte[] _fileBuffer, LocalFileStructure _fileStructure)
         {
             TransferID = _transferID;
             IsSuccessful = _successful;

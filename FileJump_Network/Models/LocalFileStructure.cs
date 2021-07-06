@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FileJump.Network
 {
     [DebuggerDisplay("{FileName}")]
-    public class FileStructure
+    public class LocalFileStructure
     {
         /// <summary>
         /// The Name of the file, without the extension
@@ -21,6 +21,11 @@ namespace FileJump.Network
         public string FileExtension { get; set; }
 
         /// <summary>
+        /// Name + extension together. ex. run.exe
+        /// </summary>
+        public string FullName { get; set; }
+
+        /// <summary>
         /// The path of the file (Origin if being sent, destination if being received)
         /// </summary>
         public string FilePath { get; set; }
@@ -30,7 +35,17 @@ namespace FileJump.Network
         /// </summary>
         public long FileSize { get; set; }
 
-        public bool Equals(FileStructure other)
+        /// <summary>
+        /// The name of the thumbnail. Empty if there isn't one
+        /// </summary>
+        public string Thumbnail { get; set; }
+
+        /// <summary>
+        /// The number of downloads currently remaining for the file
+        /// </summary>
+        public int DownloadsRemaining { get; set; }
+
+        public bool Equals(LocalFileStructure other)
         {
             if (ReferenceEquals(other, null)) return false;
             if (ReferenceEquals(other, this)) return true;
@@ -44,15 +59,15 @@ namespace FileJump.Network
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
 
-            return Equals(obj as FileStructure);
+            return Equals(obj as LocalFileStructure);
         }
 
-        public static bool operator ==(FileStructure f1, FileStructure f2)
+        public static bool operator ==(LocalFileStructure f1, LocalFileStructure f2)
         {
             return Equals(f1, f2);
         }
 
-        public static bool operator !=(FileStructure f1, FileStructure f2)
+        public static bool operator !=(LocalFileStructure f1, LocalFileStructure f2)
         {
             return !Equals(f1, f2);
         }

@@ -19,7 +19,7 @@ namespace FileJump.Network
             Array.Copy(data, 4, PacketData, 0, PacketData.Length);
         }
 
-        public TransferRequestPacket(FileStructure fStruct, int localID)
+        public TransferRequestPacket(LocalFileStructure fStruct, int localID)
         {
             PacketBuffer buffer = new PacketBuffer();
             buffer.WriteInteger(localID);
@@ -39,7 +39,7 @@ namespace FileJump.Network
         /// Returns a FileStructure object containing the information
         /// </summary>
         /// <returns></returns>
-        public FileStructure GetFileStructure()
+        public LocalFileStructure GetFileStructure()
         {
             if (PacketData == null || PacketData.Length < 12)
             {
@@ -59,7 +59,7 @@ namespace FileJump.Network
             
             */
 
-            FileStructure fStruct = new FileStructure();
+            LocalFileStructure fStruct = new LocalFileStructure();
             buffer.ReadInteger(); // Ignore the local ID
             fStruct.FileSize = buffer.ReadLong();
             fStruct.FileName = buffer.ReadString();

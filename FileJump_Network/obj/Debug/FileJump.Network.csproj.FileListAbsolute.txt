@@ -1,12 +1,12 @@
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\FileJump_Network.dll
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\FileJump_Network.pdb
-C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.csproj.CoreCompileInputs.cache
-C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.dll
-C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.pdb
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\JWT.dll
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\Newtonsoft.Json.dll
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\JWT.pdb
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\JWT.xml
 C:\dev\FileJump_Network\FileJump_Network\bin\Debug\Newtonsoft.Json.xml
-C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.csproj.CopyComplete
-C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.csprojAssemblyReference.cache
+C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump.Network.csproj.CoreCompileInputs.cache
+C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump.Network.csproj.CopyComplete
+C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.dll
+C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump_Network.pdb
+C:\dev\FileJump_Network\FileJump_Network\obj\Debug\FileJump.Network.csprojAssemblyReference.cache

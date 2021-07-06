@@ -24,19 +24,18 @@ namespace FileJump.Network
 
         public static IPAddress localAddress;
 
-        public static void InitializeNetwork()
+        public static void InitializeNetwork(string device_name, int device_type, string files_folder)
         {
-            DataProcessor.InitializeDataProcessor();
+            ProgramSettings.DeviceName = device_name;
+            ProgramSettings.DeviceType = (NetworkDeviceType)device_type;
+            ProgramSettings.StorageFolderPath = files_folder;
 
+            DataProcessor.InitializeDataProcessor();
+            ApiCommunication.InitializeClient();
             localAddress = IPAddress.Parse(GetLocalIPAddress());
             listenerEP = new IPEndPoint(IPAddress.Any, listeningPort);
             socket = new UdpClient(listeningPort);
             socket.BeginReceive(new AsyncCallback(ReceiveCompletedCallback), null);
-            Console.WriteLine("Server initialized. Listening on port " + listeningPort);
-
-
-
-
         }
 
         private static void ReceiveCompletedCallback(IAsyncResult aResult)

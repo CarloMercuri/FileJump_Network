@@ -30,7 +30,7 @@ namespace FileJump.Network
         /// <summary>
         /// The information about the file
         /// </summary>
-        private FileStructure SelectedFileStructure { get; set; }
+        private LocalFileStructure SelectedFileStructure { get; set; }
 
         /// <summary>
         /// The bytes of the selected file
@@ -108,7 +108,7 @@ namespace FileJump.Network
 
 
 
-        public OutboundTransferProcess(FileStructure _file, IPEndPoint _endPoint, UInt32 _chunkSize, int _localID)
+        public OutboundTransferProcess(LocalFileStructure _file, IPEndPoint _endPoint, UInt32 _chunkSize, int _localID)
         {
             TargetEndPoint = _endPoint;
             SelectedFileStructure = _file;

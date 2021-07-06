@@ -14,7 +14,7 @@ namespace FileJump.Network
 
         public static string DeviceName { get; set; } = "TEST_PC1";
 
-        public static NetworkDeviceType DeviceType { get; set; } = NetworkDeviceType.MobilePhone;
+        public static NetworkDeviceType DeviceType { get; set; }
 
         /*
         public static void SetStartup()

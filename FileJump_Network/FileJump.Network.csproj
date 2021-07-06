@@ -47,17 +47,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\ApiCommunication.cs" />
     <Compile Include="DataHandlers\DataChunk.cs" />
     <Compile Include="DataHandlers\DataProcessor.cs" />
-    <Compile Include="DataTypes\FileStructure.cs" />
+    <Compile Include="EventSystem\FileDeleteRequestEventArgs.cs" />
+    <Compile Include="EventSystem\FileTransferProgressEventArgs.cs" />
+    <Compile Include="EventSystem\FileDownloadResultEventArgs.cs" />
+    <Compile Include="Models\FileDownloadRequestModel.cs" />
+    <Compile Include="Models\LocalFileStructure.cs" />
     <Compile Include="DataTypes\NetworkDevice.cs" />
     <Compile Include="EventSystem\InboundTextTransferEventArgs.cs" />
     <Compile Include="EventSystem\InboundTransferEventArgs.cs" />
+    <Compile Include="EventSystem\LoginFailEventArgs.cs" />
+    <Compile Include="EventSystem\LoginResultEventArgs.cs" />
+    <Compile Include="EventSystem\LoginSuccessEventArgs.cs" />
+    <Compile Include="EventSystem\LogoutResultEventArgs.cs" />
     <Compile Include="EventSystem\NetworkDiscoveryEventArgs.cs" />
     <Compile Include="EventSystem\OutTransferEventArgs.cs" />
+    <Compile Include="EventSystem\RegistrationResultEventArgs.cs" />
+    <Compile Include="EventSystem\ThumbnailReceivedEventArgs.cs" />
+    <Compile Include="EventSystem\UploadProgressEventArgs.cs" />
     <Compile Include="Interfaces\GenericParameterInitializer.cs" />
+    <Compile Include="Interfaces\IActionApiResponse.cs" />
     <Compile Include="Interfaces\IFileHandler.cs" />
     <Compile Include="Interfaces\INetworkPacket.cs" />
+    <Compile Include="Models\AccountInfoModel.cs" />
+    <Compile Include="Models\GenericResponseModel.cs" />
+    <Compile Include="Models\LoginRequestResponseModel.cs" />
+    <Compile Include="Models\NewAccountDataModel.cs" />
+    <Compile Include="Models\OnlineFileStructure.cs" />
+    <Compile Include="Models\PasswordChangeResponseModel.cs" />
+    <Compile Include="Models\PasswordRecoveryResponseModel.cs" />
+    <Compile Include="Models\UserStandardAuthentication.cs" />
     <Compile Include="NetComm.cs" />
     <Compile Include="PacketBuffer.cs" />
     <Compile Include="Packets\AcknowledgePacket.cs" />
@@ -78,6 +99,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tools\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

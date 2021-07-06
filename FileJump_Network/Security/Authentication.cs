@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JWT.Builder;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace FileJump_Network.Security
+namespace FileJump_Network
 {
     public static class Authentication
     {
@@ -20,6 +22,8 @@ namespace FileJump_Network.Security
             byte[] textAsBytes = Encoding.UTF8.GetBytes(textToEncode);
             return Convert.ToBase64String(textAsBytes);
         }
+
+       
 
         public static string GetSessionToken()
         {

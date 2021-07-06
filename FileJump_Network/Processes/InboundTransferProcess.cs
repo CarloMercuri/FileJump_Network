@@ -16,7 +16,7 @@ namespace FileJump.Network
         /// </summary>
         public IPEndPoint SenderEndPoint { get; private set; }
 
-        private FileStructure IncomingFileStructure { get; set; }
+        private LocalFileStructure IncomingFileStructure { get; set; }
 
         /// <summary>
         /// File size in bytes
@@ -63,7 +63,7 @@ namespace FileJump.Network
         public event EventHandler<InboundTransferEventArgs> OnTransferFinished;
 
 
-        public InboundTransferProcess(int _transferID, FileStructure _fileStructure, IPEndPoint _senderEP)
+        public InboundTransferProcess(int _transferID, LocalFileStructure _fileStructure, IPEndPoint _senderEP)
         {
             ExpectedNextChunkNumber = 0;
             ReceivedChunksCount = 0;

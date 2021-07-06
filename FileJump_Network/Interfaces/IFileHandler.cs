@@ -9,7 +9,7 @@ namespace FileJump.Network
     public interface IFileHandler
     {
         byte[] FileData { get; set; }
-        FileStructure FileStructure { get; set; }
+        LocalFileStructure FileStructure { get; set; }
 
         void SaveFileToLocalStorage();
     }

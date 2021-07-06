@@ -31,7 +31,7 @@ namespace FileJump.Network
 
         public static OutboundTransferProcess ActiveOutboundTransferProcess;
 
-        private static List<FileStructure> QueuedOutboundFiles = new List<FileStructure>();
+        private static List<LocalFileStructure> QueuedOutboundFiles = new List<LocalFileStructure>();
 
         private static IPEndPoint TargetEndPoint { get; set; }
 
@@ -191,7 +191,7 @@ namespace FileJump.Network
 
         private static void ProcessFileTransferRequest(IPEndPoint ep, TransferRequestPacket packet)
         {
-            FileStructure fStruct = packet.GetFileStructure();
+            LocalFileStructure fStruct = packet.GetFileStructure();
 
             if (fStruct == null)
             {
@@ -238,7 +238,6 @@ namespace FileJump.Network
            ActiveInboundTransferProcesses[args.TransferID] = null;
            IncomingTransferFinished?.Invoke(null, args);
         }
-
 
 
         /// <summary>
@@ -291,13 +290,13 @@ namespace FileJump.Network
         }
 
 
-        public static void SendFiles(List<FileStructure> fileStructures, IPEndPoint endPoint)
+        public static void SendFiles(List<LocalFileStructure> fileStructures, IPEndPoint endPoint)
         {
             // Assign the endpoint
             TargetEndPoint = endPoint;
 
             // Clear the queue
-            QueuedOutboundFiles = new List<FileStructure>();
+            QueuedOutboundFiles = new List<LocalFileStructure>();
 
             QueuedOutboundFiles = fileStructures;
 
@@ -318,7 +317,7 @@ namespace FileJump.Network
         /// <param name="fStruct"></param>
         /// <param name="endPoint"></param>
         /// <returns></returns>
-        private static bool SendFile(FileStructure fStruct)
+        private static bool SendFile(LocalFileStructure fStruct)
         {
             if(ActiveOutboundTransferProcess != null)
             {
