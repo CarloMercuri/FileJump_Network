@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileJump_Network.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,8 +9,13 @@ using System.Threading.Tasks;
 namespace FileJump.Network
 {
     [DebuggerDisplay("{FileName}")]
-    public class LocalFileStructure
+    public class LocalFileStructure : IFileStructure
     {
+        /// <summary>
+        /// The ID of the current file
+        /// </summary>
+        public int FileID { get; set; }
+
         /// <summary>
         /// The Name of the file, without the extension
         /// </summary>
@@ -41,9 +47,10 @@ namespace FileJump.Network
         public string Thumbnail { get; set; }
 
         /// <summary>
-        /// The number of downloads currently remaining for the file
+        /// The current status of the file
         /// </summary>
-        public int DownloadsRemaining { get; set; }
+        public FileStatus FileStatus { get; set; }
+
 
         public bool Equals(LocalFileStructure other)
         {

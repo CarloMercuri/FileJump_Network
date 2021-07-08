@@ -53,6 +53,7 @@
     <Compile Include="EventSystem\FileDeleteRequestEventArgs.cs" />
     <Compile Include="EventSystem\FileTransferProgressEventArgs.cs" />
     <Compile Include="EventSystem\FileDownloadResultEventArgs.cs" />
+    <Compile Include="Interfaces\IFileStructure.cs" />
     <Compile Include="Models\FileDownloadRequestModel.cs" />
     <Compile Include="Models\LocalFileStructure.cs" />
     <Compile Include="DataTypes\NetworkDevice.cs" />

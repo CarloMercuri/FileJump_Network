@@ -13,6 +13,11 @@ namespace FileJump.Network
         /// The extension of the file, including the dot (e.g. .bmp)
         /// </summary>
         public string FileExtension { get; set; }
+        
+        /// <summary>
+        /// Only the file name, without extension
+        /// </summary>
+        public string FileName { get; set; }
 
         /// <summary>
         /// Name + extension together. ex. run.exe

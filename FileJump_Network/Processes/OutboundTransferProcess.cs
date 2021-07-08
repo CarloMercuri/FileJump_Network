@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FileJump.Network.EventSystem;
+using FileJump_Network.EventSystem;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FileJump.Network
 {
-    public class OutboundTransferProcess
+    public class OutBoundTransferProcess : IDisposable
     {
         /// <summary>
         /// The EndPoint on the receiving end
@@ -93,6 +95,10 @@ namespace FileJump.Network
         /// </summary>
         private long LastCommunicationSnapshot { get; set; }
 
+        private int DownloadProgressNextTick { get; set; }
+
+        private int DownloadProgressTreshold { get; set; }
+
         /// <summary>
         /// Returns the time in milliseconds since we last heard from the receiver
         /// </summary>
@@ -105,10 +111,11 @@ namespace FileJump.Network
         // Events
         public event EventHandler<OutTransferEventArgs> OutTransferFinished;
         public event EventHandler<OutTransferEventArgs> OutTransferStarted;
+        public event EventHandler<FileTransferProgressEventArgs> OutTransferProgress;
 
 
 
-        public OutboundTransferProcess(LocalFileStructure _file, IPEndPoint _endPoint, UInt32 _chunkSize, int _localID)
+        public OutBoundTransferProcess(LocalFileStructure _file, IPEndPoint _endPoint, UInt32 _chunkSize, int _localID)
         {
             TargetEndPoint = _endPoint;
             SelectedFileStructure = _file;
@@ -119,6 +126,13 @@ namespace FileJump.Network
             LocalTransferID = _localID;
             ProcessState = SendProcessState.Inactive;
             Terminated = false;
+            
+            DownloadProgressTreshold = 5; // Update progress every 5%
+        }
+
+        public void TerminateTransfer()
+        {
+            Terminated = true;
         }
 
         private void LoadFile()
@@ -187,6 +201,20 @@ namespace FileJump.Network
         /// </summary>
         private void SendChunk()
         {
+            // Update progress
+            decimal pp = (decimal)ReadIndex / (decimal)FileBuffer.Length;
+            int percent = (int)Math.Round(pp * 100);
+
+            if (percent > DownloadProgressNextTick)
+            {
+                FileTransferProgressEventArgs args = new FileTransferProgressEventArgs();
+                args.PercentProgress = percent;
+                args.ID = LocalTransferID;
+                args.FileName = SelectedFileStructure.FullName;
+                OutTransferProgress?.Invoke(null, args);
+                DownloadProgressNextTick = percent + DownloadProgressTreshold;
+            }
+
             DataCarryPacket dcp =  CreateDataPacket();
             NetComm.SendByteArray(dcp.ToByteArray(), TargetEndPoint);
             LastActionSnapshot = timer.ElapsedMilliseconds;
@@ -210,6 +238,7 @@ namespace FileJump.Network
                 return 0;
             }
         }
+
 
         private DataCarryPacket CreateDataPacket()
         {
@@ -266,7 +295,7 @@ namespace FileJump.Network
                 if (Terminated)
                 {
                     // Forced termination
-                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.TRANSFER_TERMINATED));
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.TRANSFER_TERMINATED, LocalTransferID));
                     return;
                 }
 
@@ -279,16 +308,36 @@ namespace FileJump.Network
                 // If too much time has passed without hearing from the server, shut down the process
                 if(TimeSinceLastCommunication > 3000)
                 {
-                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT));
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT, LocalTransferID));
                     return;
                 }
 
             }
 
             // We are finished
-            OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, true, Constants.TRANSFER_SUCCESSFUL));
+            OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, true, Constants.TRANSFER_SUCCESSFUL, LocalTransferID));
+
+            Dispose();
         }
 
-
+        private bool disposedValue = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    FileBuffer = null;
+                }
+                
+            }
+            disposedValue = true;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+            GC.Collect();
+        }
     }
 }

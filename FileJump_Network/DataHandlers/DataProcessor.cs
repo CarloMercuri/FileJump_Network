@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FileJump.Network.EventSystem;
+using FileJump_Network.EventSystem;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -17,6 +19,8 @@ namespace FileJump.Network
 
         public static event EventHandler<OutTransferEventArgs> OutboundTransferStarted;
 
+        public static event EventHandler<FileTransferProgressEventArgs> OutboundTransferProgress;
+
         public static event EventHandler<InboundTransferEventArgs> IncomingTransferFinished;
 
         public static event EventHandler<InboundTextTransferEventArgs> InboundTextTransferFinished;
@@ -29,13 +33,15 @@ namespace FileJump.Network
 
         private static InboundTransferProcess[] ActiveInboundTransferProcesses;
 
-        public static OutboundTransferProcess ActiveOutboundTransferProcess;
+        public static OutBoundTransferProcess ActiveOutboundTransferProcess;
 
         private static List<LocalFileStructure> QueuedOutboundFiles = new List<LocalFileStructure>();
 
         private static IPEndPoint TargetEndPoint { get; set; }
 
         private static UInt32 MaxChunkSize = 40000;
+
+        private static bool OutboundTransfersAllowed { get; set; }
 
 
 
@@ -146,8 +152,11 @@ namespace FileJump.Network
         {
 
             int id = ack.GetTransferID();
+            if(ActiveOutboundTransferProcess != null)
+            {
+                ActiveOutboundTransferProcess.ReceivePacket(ack);
+            }
 
-            ActiveOutboundTransferProcess.ReceivePacket(ack);
 
         }
 
@@ -186,7 +195,11 @@ namespace FileJump.Network
         private static void ProcessTFA(IPEndPoint ep, TransferAcceptPacket tap)
         {
             int senderID = tap.GetSenderTransferID();
-            ActiveOutboundTransferProcess.ReceivePacket(tap);
+            if (ActiveOutboundTransferProcess != null)
+            {
+                ActiveOutboundTransferProcess.ReceivePacket(tap);
+            }
+            
         }
 
         private static void ProcessFileTransferRequest(IPEndPoint ep, TransferRequestPacket packet)
@@ -253,7 +266,7 @@ namespace FileJump.Network
                 Type = ProgramSettings.DeviceType
             });
 
-            Console.WriteLine("sending response: ");
+            
 
             NetComm.SendByteArray(packet.ToByteArray(), ep);
         }
@@ -292,6 +305,7 @@ namespace FileJump.Network
 
         public static void SendFiles(List<LocalFileStructure> fileStructures, IPEndPoint endPoint)
         {
+            OutboundTransfersAllowed = true;
             // Assign the endpoint
             TargetEndPoint = endPoint;
 
@@ -324,12 +338,18 @@ namespace FileJump.Network
                 return false;
             }
 
-            ActiveOutboundTransferProcess = new OutboundTransferProcess(fStruct, TargetEndPoint, MaxChunkSize, 1);
+            ActiveOutboundTransferProcess = new OutBoundTransferProcess(fStruct, TargetEndPoint, MaxChunkSize, fStruct.FileID);
             ActiveOutboundTransferProcess.OutTransferFinished += OutTransferFinished;
             ActiveOutboundTransferProcess.OutTransferStarted += OutTransferStarted;
+            ActiveOutboundTransferProcess.OutTransferProgress += OutTransferProgress;
             ActiveOutboundTransferProcess.Start();
 
             return true;
+        }
+
+        private static void OutTransferProgress(object sender, FileTransferProgressEventArgs e)
+        {
+            OutboundTransferProgress?.Invoke(null, e);
         }
 
         private static void OutTransferStarted(object sender, OutTransferEventArgs args)
@@ -347,11 +367,32 @@ namespace FileJump.Network
             }
         }
 
+        public static void TerminateTransfers()
+        {
+            OutboundTransfersAllowed = false;
+
+            if(ActiveOutboundTransferProcess != null)
+            {
+                ActiveOutboundTransferProcess.TerminateTransfer();
+            }
+        }
+
         private static void OutTransferFinished(object sender, OutTransferEventArgs args)
         {
             ActiveOutboundTransferProcess = null;
+
             OutboundTransferFinished?.Invoke(null, args);
-            SendNextFile();
+
+            if (OutboundTransfersAllowed)
+            {
+                SendNextFile();
+            }
+            else
+            {
+                OutboundTransfersAllowed = true;
+            }
+           
+
         }
 
         /// <summary>

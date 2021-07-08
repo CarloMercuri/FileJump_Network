@@ -23,11 +23,17 @@ namespace FileJump.Network
         /// </summary>
         public string Message { get; set; }
 
-        public OutTransferEventArgs(string _filePath, bool _successful, string _msg)
+        /// <summary>
+        /// The ID of the file
+        /// </summary>
+        public int FileID { get; set; }
+
+        public OutTransferEventArgs(string _filePath, bool _successful, string _msg, int _fileID = -1)
         {
             FilePath = _filePath;
             IsSuccessful = _successful;
             Message = _msg;
+            FileID = _fileID;
         }
     }
 }

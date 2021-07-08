@@ -61,7 +61,6 @@ namespace FileJump.Network
 
                 // Forward the buffer directly
                 DataProcessor.ProcessRawData(data, remoteEP);
-                Console.WriteLine("---------------------- RECEIVED SOMETHING --------------");
 
             }
             catch
