@@ -99,6 +99,8 @@ namespace FileJump.Network
 
         private int DownloadProgressTreshold { get; set; }
 
+        private FileStream fStream { get; set; }
+
         /// <summary>
         /// Returns the time in milliseconds since we last heard from the receiver
         /// </summary>
@@ -138,7 +140,9 @@ namespace FileJump.Network
         private void LoadFile()
         {
             // Should I put some safety checks? The previous ones should be enough
-            FileBuffer = File.ReadAllBytes(SelectedFileStructure.FilePath);
+            //FileBuffer = File.ReadAllBytes(SelectedFileStructure.FilePath);
+            fStream = new FileStream(SelectedFileStructure.FilePath, FileMode.Open, FileAccess.Read);
+
         }
 
         public void Start()
@@ -202,7 +206,8 @@ namespace FileJump.Network
         private void SendChunk()
         {
             // Update progress
-            decimal pp = (decimal)ReadIndex / (decimal)FileBuffer.Length;
+            //decimal pp = (decimal)ReadIndex / (decimal)FileBuffer.Length;
+            decimal pp = (decimal)ReadIndex / (decimal)SelectedFileStructure.FileSize;
             int percent = (int)Math.Round(pp * 100);
 
             if (percent > DownloadProgressNextTick)
@@ -246,7 +251,8 @@ namespace FileJump.Network
             if (IsLastChunk())
             {
                 LastChunkSent = true;
-                DataCarryPacket dcp = new DataCarryPacket(ChunkNumber, RemoteTransferID, true, GetChunk(FileBuffer.Length - ReadIndex));
+                //DataCarryPacket dcp = new DataCarryPacket(ChunkNumber, RemoteTransferID, true, GetChunk(FileBuffer.Length - ReadIndex));
+                DataCarryPacket dcp = new DataCarryPacket(ChunkNumber, RemoteTransferID, true, GetChunk(SelectedFileStructure.FileSize - ReadIndex));
                 return dcp;
             }
             else
@@ -260,14 +266,20 @@ namespace FileJump.Network
         private byte[] GetChunk(long lenght)
         {
             byte[] array = new byte[lenght];
-            Array.Copy(FileBuffer, ReadIndex, array, 0, lenght);
+            //Array.Copy(FileBuffer, ReadIndex, array, 0, lenght);
+            //ReadIndex += lenght;
+            //return array;
+            fStream.Seek(ReadIndex, SeekOrigin.Begin);
+            fStream.Read(array, 0, (int)lenght);
             ReadIndex += lenght;
             return array;
         }
 
         private bool IsLastChunk()
         {
-            return ReadIndex + ChunkSize >= FileBuffer.Length;
+            //return ReadIndex + ChunkSize >= FileBuffer.Length;
+            bool islast = ReadIndex + ChunkSize >= SelectedFileStructure.FileSize;
+            return ReadIndex + ChunkSize >= SelectedFileStructure.FileSize;
         }
 
         /// <summary>
@@ -296,28 +308,36 @@ namespace FileJump.Network
                 {
                     // Forced termination
                     OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.TRANSFER_TERMINATED, LocalTransferID));
+                    fStream.Dispose();
+                    fStream.Close();
+                    return;
+                }
+
+                // If too much time has passed without hearing from the server, shut down the process
+                if (TimeSinceLastCommunication > 3000)
+                {
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT, LocalTransferID));
+                    fStream.Dispose();
+                    fStream.Close();
                     return;
                 }
 
                 // If too much time has passed without an ack, resend the last packet
-                if(timer.ElapsedMilliseconds - LastActionSnapshot > 200 && ProcessState == SendProcessState.WaitingForAck)
+                if (timer.ElapsedMilliseconds - LastActionSnapshot > 200 && ProcessState == SendProcessState.WaitingForAck)
                 {
                     SendChunk();
                 }
 
-                // If too much time has passed without hearing from the server, shut down the process
-                if(TimeSinceLastCommunication > 3000)
-                {
-                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT, LocalTransferID));
-                    return;
-                }
+
+
 
             }
 
             // We are finished
             OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, true, Constants.TRANSFER_SUCCESSFUL, LocalTransferID));
+            return;
 
-            Dispose();
+
         }
 
         private bool disposedValue = false;
@@ -327,7 +347,7 @@ namespace FileJump.Network
             {
                 if (disposing)
                 {
-                    FileBuffer = null;
+                    //FileBuffer = null;
                 }
                 
             }

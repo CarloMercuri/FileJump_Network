@@ -214,12 +214,12 @@ namespace FileJump.Network
             }
             // Check that its ok
 
-            if(fStruct.FileSize > 500000000) // Refuse if over 500mb
-            {
-                // Send transfer refusal
+            //if(fStruct.FileSize > 500000000) // Refuse if over 500mb
+            //{
+            //    // Send transfer refusal
 
-                return;
-            }
+            //    return;
+            //}
 
 
             // set up
@@ -308,6 +308,7 @@ namespace FileJump.Network
             OutboundTransfersAllowed = true;
             // Assign the endpoint
             TargetEndPoint = endPoint;
+
 
             // Clear the queue
             QueuedOutboundFiles = new List<LocalFileStructure>();

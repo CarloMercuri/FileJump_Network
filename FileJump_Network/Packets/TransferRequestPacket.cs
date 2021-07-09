@@ -48,22 +48,13 @@ namespace FileJump.Network
 
             PacketBuffer buffer = new PacketBuffer();
             buffer.WriteBytes(PacketData);
-            /*
-            FileStructure fStruct = new FileStructure()
-            {
-                FileSize = buffer.ReadLong(),
-                FileName = buffer.ReadString(),
-                FileExtension = buffer.ReadString()
-            };
-
-            
-            */
 
             LocalFileStructure fStruct = new LocalFileStructure();
             buffer.ReadInteger(); // Ignore the local ID
             fStruct.FileSize = buffer.ReadLong();
             fStruct.FileName = buffer.ReadString();
             fStruct.FileExtension = buffer.ReadString();
+            fStruct.FullName = fStruct.FileName + fStruct.FileExtension;
 
             buffer.Dispose();
 

@@ -28,6 +28,8 @@ namespace FileJump.Network
         /// </summary>
         public string FileName { get; private set; }
 
+        public string TempFilePath { get; set;  }
+
         /// <summary>
         /// The extension of the file being received
         /// </summary>
@@ -58,6 +60,8 @@ namespace FileJump.Network
         /// </summary>
         public UInt32 ExpectedNextChunkNumber { get; set; }
 
+        private FileStream fStream { get; set; }
+
 
 
         public event EventHandler<InboundTransferEventArgs> OnTransferFinished;
@@ -70,6 +74,17 @@ namespace FileJump.Network
             IncomingFileStructure = _fileStructure;
             SenderEndPoint = _senderEP;
             TransferID = _transferID;
+            TempFilePath = Path.Combine(ProgramSettings.StorageFolderPath, _fileStructure.FileName + ".fjtemp");
+
+            var f = File.Create(TempFilePath);
+            f.Close();
+
+            fStream = new FileStream(TempFilePath, FileMode.Append, FileAccess.Write);
+
+            // need to close it or it complains
+
+
+
         }
 
         public bool Shutdown()
@@ -86,6 +101,20 @@ namespace FileJump.Network
             switch (packet)
             {
                 case DataCarryPacket dcp:
+
+                    //using (FileStream fStream = new FileStream(TempFilePath, FileMode.Append, FileAccess.Write))
+                    //{
+                    //    fStream.Write(packet.PacketData, 0, packet.PacketData.Length);
+                    //}
+
+                    fStream.Write(packet.PacketData, 0, packet.PacketData.Length);
+
+                    //using (FileStream fStream = File.Open(TempFilePath, FileMode.OpenOrCreate))
+                    //{
+                    //    fStream.Seek(0, SeekOrigin.End);
+                    //    fStream.Write(packet.PacketData, 0, packet.PacketData.Length);
+                    //}
+
                     // Send the ack packet back
                     AcknowledgePacket ack = new AcknowledgePacket(dcp.PacketNumber, TransferID);
                     NetComm.SendByteArray(ack.ToByteArray(), SenderEndPoint);
@@ -93,12 +122,13 @@ namespace FileJump.Network
                     // If it's marked as last, process the file
                     if (dcp.IsLast)
                     {
-                        ReceivedChunks.Add(new DataChunk(dcp.PacketNumber, dcp.PacketData));
-                        ProcessFinishedFile();
+                        //ReceivedChunks.Add(new DataChunk(dcp.PacketNumber, dcp.PacketData));
+                        //ProcessFinishedFile();
+                        ProcessFinishedFileStream();
                     }
                     else
                     {
-                        ReceivedChunks.Add(new DataChunk(dcp.PacketNumber, dcp.PacketData));
+                        //ReceivedChunks.Add(new DataChunk(dcp.PacketNumber, dcp.PacketData));
                     }
                     
                     break;
@@ -106,6 +136,16 @@ namespace FileJump.Network
         }
 
   
+        private void ProcessFinishedFileStream()
+        {
+            string newFile = Path.Combine(ProgramSettings.StorageFolderPath, IncomingFileStructure.FullName);
+            fStream.Dispose();
+            fStream.Close();
+            File.Move(TempFilePath, newFile);
+
+            //fStream.Close();
+        }
+
 
         private void ProcessFinishedFile()
         {
@@ -120,6 +160,9 @@ namespace FileJump.Network
             byte[] fileBuffer = buffer.ToArray();
 
             OnTransferFinished?.Invoke(null, new InboundTransferEventArgs(TransferID, true, fileBuffer, IncomingFileStructure));
+
+            fileBuffer = null;
+            ReceivedChunks = null;
             
         }
 
