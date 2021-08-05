@@ -149,6 +149,17 @@ namespace FileJump.Network
         {
             timer.Start();
             IsRunning = true;
+
+            // First we load the file
+            LoadFile();
+
+            // Sending the request packet
+            TransferRequestPacket trp = new TransferRequestPacket(SelectedFileStructure, LocalTransferID);
+            NetComm.SendByteArray(trp.ToByteArray(), TargetEndPoint);
+
+            // Update the state
+            ProcessState = SendProcessState.SentTransferRequest;
+
             ProcessThread = new Thread(MainLoop);
             ProcessThread.Start();
         }
@@ -178,7 +189,7 @@ namespace FileJump.Network
                     {
                         // If we get the ack for the last packet, then we're done
                         ProcessState = SendProcessState.Terminating;
-                        EndProcess();
+                        EndProcess("Successful");
                         return;
                     }
 
@@ -191,6 +202,7 @@ namespace FileJump.Network
                     LastCommunicationSnapshot = timer.ElapsedMilliseconds;  // Probably not necessary. Eh.
                     ProcessState = SendProcessState.Terminating;
                     Terminated = true;
+                    EndProcess("Terminated");
                     return;
 
                 default:
@@ -227,10 +239,7 @@ namespace FileJump.Network
         }
 
 
-        private void EndProcess()
-        {
-            IsRunning = false;
-        }
+       
 
         private long GetTimeSinceLastComm()
         {
@@ -266,20 +275,43 @@ namespace FileJump.Network
         private byte[] GetChunk(long lenght)
         {
             byte[] array = new byte[lenght];
-            //Array.Copy(FileBuffer, ReadIndex, array, 0, lenght);
-            //ReadIndex += lenght;
-            //return array;
             fStream.Seek(ReadIndex, SeekOrigin.Begin);
             fStream.Read(array, 0, (int)lenght);
             ReadIndex += lenght;
             return array;
         }
 
+        /// <summary>
+        /// Returns true if the next chunk would be the last one
+        /// </summary>
+        /// <returns></returns>
         private bool IsLastChunk()
         {
-            //return ReadIndex + ChunkSize >= FileBuffer.Length;
-            bool islast = ReadIndex + ChunkSize >= SelectedFileStructure.FileSize;
             return ReadIndex + ChunkSize >= SelectedFileStructure.FileSize;
+        }
+
+        private void EndProcess(string status)
+        {
+            IsRunning = false;
+
+            //ProcessThread.Abort();
+
+            switch (status)
+            {
+                case "Successful":
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, true, Constants.TRANSFER_SUCCESSFUL, LocalTransferID));
+                    break;
+
+                case "Terminated":
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.TRANSFER_TERMINATED, LocalTransferID));
+                    break;
+
+                case "Timeout":
+                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT, LocalTransferID));
+                    break;
+            }
+
+
         }
 
         /// <summary>
@@ -287,38 +319,17 @@ namespace FileJump.Network
         /// </summary>
         private void MainLoop()
         {
-            // First we load the file
-            LoadFile();
-
-            // Sending the request packet
-            TransferRequestPacket trp = new TransferRequestPacket(SelectedFileStructure, LocalTransferID);
-            NetComm.SendByteArray(trp.ToByteArray(), TargetEndPoint);
-
-            // Update the state
-            ProcessState = SendProcessState.SentTransferRequest;
-
             // After this it is gonna run passively. It sends a packet, and when ACK comes, sends the next.
-            // The following loop checks that ACKs came back etc.
+            // The following loop checks that ACKs came back, timeouts and so on.
 
             while (IsRunning)
             {
                 Thread.Sleep(20);
 
-                if (Terminated)
-                {
-                    // Forced termination
-                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.TRANSFER_TERMINATED, LocalTransferID));
-                    fStream.Dispose();
-                    fStream.Close();
-                    return;
-                }
-
                 // If too much time has passed without hearing from the server, shut down the process
                 if (TimeSinceLastCommunication > 3000)
                 {
-                    OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, false, Constants.DEVICE_TIMEOUT, LocalTransferID));
-                    fStream.Dispose();
-                    fStream.Close();
+
                     return;
                 }
 
@@ -334,7 +345,6 @@ namespace FileJump.Network
             }
 
             // We are finished
-            OutTransferFinished?.Invoke(this, new OutTransferEventArgs(SelectedFileStructure.FilePath, true, Constants.TRANSFER_SUCCESSFUL, LocalTransferID));
             return;
 
 

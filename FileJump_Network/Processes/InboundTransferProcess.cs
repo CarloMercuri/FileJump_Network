@@ -62,28 +62,28 @@ namespace FileJump.Network
 
         private FileStream fStream { get; set; }
 
+        public IFileHandler _fileHandler { get; set; }
+
 
 
         public event EventHandler<InboundTransferEventArgs> OnTransferFinished;
 
 
-        public InboundTransferProcess(int _transferID, LocalFileStructure _fileStructure, IPEndPoint _senderEP)
+        public InboundTransferProcess(int _transferID, LocalFileStructure _fileStructure, IPEndPoint _senderEP, IFileHandler handler)
         {
             ExpectedNextChunkNumber = 0;
             ReceivedChunksCount = 0;
             IncomingFileStructure = _fileStructure;
             SenderEndPoint = _senderEP;
             TransferID = _transferID;
-            TempFilePath = Path.Combine(ProgramSettings.StorageFolderPath, _fileStructure.FileName + ".fjtemp");
+            _fileHandler = handler;
+
+            TempFilePath = _fileHandler.GetValidPath(Path.Combine(ProgramSettings.StorageFolderPath, _fileStructure.FileName + ".fjtemp"));
 
             var f = File.Create(TempFilePath);
             f.Close();
 
             fStream = new FileStream(TempFilePath, FileMode.Append, FileAccess.Write);
-
-            // need to close it or it complains
-
-
 
         }
 
@@ -138,12 +138,12 @@ namespace FileJump.Network
   
         private void ProcessFinishedFileStream()
         {
-            string newFile = Path.Combine(ProgramSettings.StorageFolderPath, IncomingFileStructure.FullName);
+            string newFile = _fileHandler.GetValidPath(Path.Combine(ProgramSettings.StorageFolderPath, IncomingFileStructure.FullName));
             fStream.Dispose();
             fStream.Close();
             File.Move(TempFilePath, newFile);
 
-            //fStream.Close();
+            OnTransferFinished?.Invoke(null, new InboundTransferEventArgs(TransferID, true, null, IncomingFileStructure));
         }
 
 

@@ -25,8 +25,7 @@ namespace FileJump.Network
 
         public static event EventHandler<InboundTextTransferEventArgs> InboundTextTransferFinished;
 
-        // Limit max incoming files at 5
-        private static int MaxInboundTransfers = 30;
+        private static int MaxInboundTransfers = 300;
         private static int MaxOutgoingTransfers = 30;
 
         //private static List<InboundTransferProcess> ActiveInboundProcesses;
@@ -43,12 +42,16 @@ namespace FileJump.Network
 
         private static bool OutboundTransfersAllowed { get; set; }
 
+        private static IFileHandler _fileHandler { get; set; }
+
 
 
         private static int TestPacketsCount { get; set; } = 0;
 
-        public static void InitializeDataProcessor()
+        public static void InitializeDataProcessor(IFileHandler handler)
         {
+            _fileHandler = handler;
+
             ActiveInboundTransferProcesses = new InboundTransferProcess[MaxInboundTransfers];
 
             for (int i = 0; i < ActiveInboundTransferProcesses.Length; i++)
@@ -235,7 +238,8 @@ namespace FileJump.Network
             // Create a new inbound process
             ActiveInboundTransferProcesses[slot] = new InboundTransferProcess(packet.GetSenderTransferID(),
                                                                               fStruct,
-                                                                              ep);
+                                                                              ep,
+                                                                              _fileHandler);
 
             ActiveInboundTransferProcesses[slot].OnTransferFinished += InboundTransferFinished;
 

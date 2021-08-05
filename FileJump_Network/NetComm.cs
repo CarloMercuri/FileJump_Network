@@ -24,13 +24,13 @@ namespace FileJump.Network
 
         public static IPAddress localAddress;
 
-        public static void InitializeNetwork(string device_name, int device_type, string files_folder)
+        public static void InitializeNetwork(string device_name, int device_type, string files_folder, IFileHandler handler)
         {
             ProgramSettings.DeviceName = device_name;
             ProgramSettings.DeviceType = (NetworkDeviceType)device_type;
             ProgramSettings.StorageFolderPath = files_folder;
 
-            DataProcessor.InitializeDataProcessor();
+            DataProcessor.InitializeDataProcessor(handler);
             ApiCommunication.InitializeClient();
             localAddress = IPAddress.Parse(GetLocalIPAddress());
             listenerEP = new IPEndPoint(IPAddress.Any, listeningPort);
@@ -42,31 +42,23 @@ namespace FileJump.Network
         {
             IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
-            try
+            byte[] data = socket.EndReceive(aResult, ref remoteEP);
+            socket.BeginReceive(ReceiveCompletedCallback, null);
+
+            // All valid packets have to contain a 4 byte header with the packet type
+            if (data.Length < 4)
             {
-                byte[] data = socket.EndReceive(aResult, ref remoteEP);
-                socket.BeginReceive(ReceiveCompletedCallback, null);
-
-                // All valid packets have to contain a 4 byte header with the packet type
-                if (data.Length < 4)
-                {
-                    return;
-                }
-
-                // TODO: all
-                if(!EntryLevelSecurity.IsEndpointAuthorized(remoteEP))
-                {
-                    return;
-                }
-
-                // Forward the buffer directly
-                DataProcessor.ProcessRawData(data, remoteEP);
-
+                return;
             }
-            catch
+
+            // TODO: all
+            if (!EntryLevelSecurity.IsEndpointAuthorized(remoteEP))
             {
-
+                return;
             }
+
+            // Forward the buffer directly
+            DataProcessor.ProcessRawData(data, remoteEP);
 
 
 
